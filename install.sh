@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-#   NEO PACKAGE MANAGER - ELITE INSTALLER v3.1
+#   NEO PACKAGE MANAGER - ELITE INSTALLER v0.1
 # ============================================================
 #   🚨 SYSTEM REQUIREMENTS 🚨
 #   • Intel i7 ALDER LAKE (12th Gen) or NEWER ONLY
@@ -36,8 +36,8 @@ NC='\033[0m'
 
 clear
 echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║${NC} ${PURPLE}${BOLD}🚀 NEO PACKAGE MANAGER - ELITE INSTALLER v3.1 🚀${NC} ${BLUE}║${NC}"
-echo -e "${BLUE}║${NC} ${WHITE}🔥 ALDER LAKE+ EDITION - M5 READY 🔥${NC}        ${BLUE}║${NC}"
+echo -e "${BLUE}║${NC} ${PURPLE}${BOLD}🚀 NEO PACKAGE MANAGER - ELITE INSTALLER v0.1 🚀${NC} ${BLUE}║${NC}"
+echo -e "${BLUE}║${NC} ${WHITE}🔥 first EDITION! Intel - M5 READY 🔥${NC}        ${BLUE}║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
