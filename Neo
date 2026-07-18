@@ -1,0 +1,63 @@
+#!/bin/zsh
+        
+COMMAND="$1"
+PACKAGE="$2"
+    
+case "$COMMAND" in
+    ""|help|--help|-h)
+        echo "Neo Package Manager v0.2"
+        echo
+        echo "Usage:"
+        echo "  Neo install <package>"
+        echo "  Neo uninstall <package>"
+        echo "  Neo search <package>"
+        echo "  Neo list"
+        echo "  Neo update"
+        echo "  Neo doctor"
+        echo "  Neo celebration"
+        ;;
+    version|--version|-v)
+        echo "Neo Package Manager v0.2"
+        ;;
+    install)
+        [ -z "$PACKAGE" ] && { echo "Usage: Neo install <package>"; exit 1; }
+        brew install "$PACKAGE"
+        ;;
+    uninstall)
+        [ -z "$PACKAGE" ] && { echo "Usage: Neo uninstall <package>"; exit 1; }
+        brew uninstall "$PACKAGE"
+        ;;
+    search)
+        [ -z "$PACKAGE" ] && { echo "Usage: Neo search <package>"; exit 1; }
+        brew search "$PACKAGE"
+        ;;  
+    list)
+        brew list
+        ;;  
+    update)
+        brew update
+        ;;
+    doctor)   
+        brew doctor
+        ;;
+    celebration|celebrate|party)
+        echo "🎉 SURPRISE 😮🎉"
+        echo "=========================================="
+        echo "🔥 NEO PACKAGE SYSTEM CELEBRATION 🔥"
+        echo "=========================================="
+        echo
+        echo "📧 Contact: neopackagesystem@gmail.com"
+        echo
+        echo "✨ YOU get to choose the NEXT feature!"
+        echo "  -> Suggest a command"
+        echo "  -> Suggest a package"
+        echo "  -> Suggest ANYTHING you want!"
+        echo
+        echo "=========================================="
+        echo "🎊 Email us NOW to make it happen! 🎊"
+        ;;
+    *)
+        echo "Unknown command: $COMMAND"
+        echo "Run 'Neo help' for help."
+        ;;  
+esac
