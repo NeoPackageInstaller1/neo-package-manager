@@ -37,7 +37,7 @@ NC='\033[0m'
 clear
 echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║${NC} ${PURPLE}${BOLD}🚀 NEO PACKAGE MANAGER - ELITE INSTALLER v0.1 🚀${NC} ${BLUE}║${NC}"
-echo -e "${BLUE}║${NC} ${WHITE}🔥 first EDITION! Intel - M5 READY 🔥${NC}        ${BLUE}║${NC}"
+echo -e "${BLUE}║${NC} ${WHITE}🔥 ALDER LAKE+ EDITION - FIRST RELEASE 🔥${NC}      ${BLUE}║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -143,138 +143,207 @@ fi
 echo ""
 
 # ============================================================
-# CHECK CPU - INTEL ALDER LAKE+ ONLY
+# CHECK CPU - ADVANCED DETECTION WITH MODEL NUMBERS
 # ============================================================
 
-echo -e "${WHITE}[2/8] Checking CPU (INTEL ALDER LAKE+ ONLY)...${NC}"
+echo -e "${WHITE}[2/8] Checking CPU (Advanced Detection)...${NC}"
 
 CPU_SUPPORTED=false
 CPU_NAME=""
 CPU_GEN=0
+CPU_YEAR="unknown"
+CPU_MODEL_NUMBER=""
+CPU_VENDOR="unknown"
 
-# Function to detect Intel generation from model string
-detect_intel_gen() {
-    local cpu="$1"
+# Function: Get CPU Model Number (actual silicon ID)
+get_cpu_model_number() {
+    local model=""
     
-    # Check for explicit generation numbers
-    if [[ "$cpu" =~ "14th" ]] || [[ "$cpu" =~ "Ultra" ]] || [[ "$cpu" =~ "Core Ultra" ]]; then
-        echo "14"
-    elif [[ "$cpu" =~ "13th" ]]; then
-        echo "13"
-    elif [[ "$cpu" =~ "12th" ]]; then
-        echo "12"
-    elif [[ "$cpu" =~ "11th" ]]; then
-        echo "11"
-    elif [[ "$cpu" =~ "10th" ]]; then
-        echo "10"
-    # Check for i7-1xxxx (10th gen), i7-12xxx (12th gen), etc.
-    elif [[ "$cpu" =~ i7-1[0-9][0-9][0-9][0-9] ]]; then
-        echo "10"
-    elif [[ "$cpu" =~ i7-11[0-9][0-9][0-9] ]]; then
-        echo "11"
-    elif [[ "$cpu" =~ i7-12[0-9][0-9][0-9] ]]; then
-        echo "12"
-    elif [[ "$cpu" =~ i7-13[0-9][0-9][0-9] ]]; then
-        echo "13"
-    elif [[ "$cpu" =~ i7-14[0-9][0-9][0-9] ]]; then
-        echo "14"
-    # Check for i7-8xxx or i7-9xxx (8th/9th gen - OLD)
-    elif [[ "$cpu" =~ i7-[8-9][0-9][0-9][0-9] ]]; then
-        echo "old"
+    if [[ "$OS" == "macos" ]]; then
+        model=$(sysctl -n machdep.cpu.model 2>/dev/null)
+        echo "$model"
+    elif [[ "$OS" == "linux" ]]; then
+        model=$(grep -m1 "model" /proc/cpuinfo | awk '{print $3}')
+        echo "$model"
+    elif [[ "$OS" == "windows" ]]; then
+        model=$(wmic cpu get processorid 2>/dev/null | grep -v "ProcessorId" | head -1 | cut -c1-2 2>/dev/null)
+        echo "$model"
     else
         echo "unknown"
     fi
 }
 
+# Function: Detect Intel generation from model number (hardware-level!)
+get_intel_gen_from_model() {
+    local model_num="$1"
+    
+    case "$model_num" in
+        183|182|181|180|179|178|177|176|175|174|173|172|171|170)
+            echo "14"  # 14th Gen (Meteor Lake/Raptor Lake Refresh)
+            ;;
+        154|153|152|151|150|149|148|147|146|145|144|143|142|141|140)
+            echo "12"  # 12th Gen (Alder Lake)
+            ;;
+        141|140|139|138|137|136|135|134|133|132|131|130)
+            echo "11"  # 11th Gen (Rocket Lake/Tiger Lake)
+            ;;
+        130|129|128|127|126|125|124|123|122|121|120)
+            echo "10"  # 10th Gen (Comet Lake/Ice Lake)
+            ;;
+        120|119|118|117|116|115|114|113|112|111|110)
+            echo "9"   # 9th Gen (Coffee Lake Refresh)
+            ;;
+        110|109|108|107|106|105|104|103|102|101|100)
+            echo "8"   # 8th Gen (Coffee Lake)
+            ;;
+        99|98|97|96|95|94|93|92|91|90)
+            echo "7"   # 7th Gen (Kaby Lake)
+            ;;
+        89|88|87|86|85|84|83|82|81|80)
+            echo "6"   # 6th Gen (Skylake)
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
+}
+
+# Function: Get CPU release year
+get_cpu_year() {
+    local gen="$1"
+    local vendor="$2"
+    
+    if [[ "$vendor" == "intel" ]]; then
+        case "$gen" in
+            14) echo "2023" ;;
+            13) echo "2022" ;;
+            12) echo "2021" ;;
+            11) echo "2020" ;;
+            10) echo "2019" ;;
+            9)  echo "2018" ;;
+            8)  echo "2017" ;;
+            7)  echo "2016" ;;
+            6)  echo "2015" ;;
+            *)  echo "unknown" ;;
+        esac
+    elif [[ "$vendor" == "amd" ]]; then
+        if [[ "$CPU_NAME" =~ "Ryzen 9" ]]; then
+            echo "2022"
+        elif [[ "$CPU_NAME" =~ "Ryzen 7" ]]; then
+            echo "2021"
+        elif [[ "$CPU_NAME" =~ "Ryzen 5" ]]; then
+            echo "2020"
+        else
+            echo "2021"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+# Now actually detect the CPU
 if [[ "$OS" == "macos" ]]; then
     ARCH=$(uname -m)
     
     if [[ "$ARCH" == "arm64" ]]; then
-        # Apple Silicon - M1 through M5 supported!
-        CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Apple M-Series")
-        echo -e "   ${GREEN}✅${NC} Apple Silicon (M1/M2/M3/M4/M5) - SUPPORTED"
-        CPU_SUPPORTED=true
-        ((PASSED++))
+        # Apple Silicon - Get actual chip info
+        CPU_NAME=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Apple M-Series")
+        CPU_VENDOR="apple"
+        
+        if [[ "$CPU_NAME" =~ "M1" ]]; then
+            echo -e "   ${GREEN}✅${NC} Apple Silicon M1 - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2020
+            ((PASSED++))
+        elif [[ "$CPU_NAME" =~ "M2" ]]; then
+            echo -e "   ${GREEN}✅${NC} Apple Silicon M2 - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2022
+            ((PASSED++))
+        elif [[ "$CPU_NAME" =~ "M3" ]]; then
+            echo -e "   ${GREEN}✅${NC} Apple Silicon M3 - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2023
+            ((PASSED++))
+        elif [[ "$CPU_NAME" =~ "M4" ]]; then
+            echo -e "   ${GREEN}✅${NC} Apple Silicon M4 - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2024
+            ((PASSED++))
+        elif [[ "$CPU_NAME" =~ "M5" ]]; then
+            echo -e "   ${GREEN}✅${NC} Apple Silicon M5 - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2025
+            ((PASSED++))
+        else
+            echo -e "   ${GREEN}✅${NC} Apple Silicon detected - SUPPORTED"
+            CPU_SUPPORTED=true
+            CPU_YEAR=2024
+            ((PASSED++))
+        fi
         
     elif [[ "$ARCH" == "x86_64" ]]; then
-        # Intel Mac
-        CPU_MODEL=$(sysctl -n machdep.cpu.brand_string)
-        echo -e "   ${BLUE}→${NC} Intel Mac detected: $CPU_MODEL"
+        # Intel Mac - Get detailed info
+        CPU_NAME=$(sysctl -n machdep.cpu.brand_string)
+        CPU_MODEL_NUMBER=$(get_cpu_model_number)
+        echo -e "   ${BLUE}→${NC} Intel Mac detected"
+        echo -e "   ${BLUE}→${NC} CPU: $CPU_NAME"
+        echo -e "   ${BLUE}→${NC} Model Number: $CPU_MODEL_NUMBER"
         
-        if [[ "$CPU_MODEL" =~ "Intel" ]]; then
-            # Detect generation
-            GEN=$(detect_intel_gen "$CPU_MODEL")
-            
-            if [[ "$GEN" == "12" ]] || [[ "$GEN" == "13" ]] || [[ "$GEN" == "14" ]]; then
-                echo -e "   ${GREEN}✅${NC} Intel 12th Gen (Alder Lake)+ - SUPPORTED"
-                CPU_SUPPORTED=true
-                ((PASSED++))
-            elif [[ "$GEN" == "10" ]] || [[ "$GEN" == "11" ]]; then
-                echo -e "   ${YELLOW}⚠️${NC} Intel 10th/11th Gen detected - OLDER VERSION AVAILABLE"
-                echo -e "   ${YELLOW}   → Not supported in Elite Edition${NC}"
-                echo -e "   ${YELLOW}   → Download legacy version: neopackagesystem@gmail.com${NC}"
-                ((WARNINGS++))
-                ((FAILED++))
-            elif [[ "$GEN" == "old" ]]; then
-                echo -e "   ${RED}❌${NC} Intel 8th/9th Gen or older - NOT SUPPORTED"
-                echo -e "   ${YELLOW}   → ELITE EDITION requires Alder Lake (12th Gen)+${NC}"
-                echo -e "   ${YELLOW}   → Contact us for legacy support: neopackagesystem@gmail.com${NC}"
-                ((FAILED++))
-            else
-                echo -e "   ${RED}❌${NC} Unknown/Unsupported Intel CPU"
-                echo -e "   ${YELLOW}   → ELITE EDITION requires Alder Lake (12th Gen)+${NC}"
-                ((FAILED++))
-            fi
+        CPU_GEN=$(get_intel_gen_from_model "$CPU_MODEL_NUMBER")
+        CPU_VENDOR="intel"
+        
+        if [[ "$CPU_GEN" -ge 12 ]] && [[ "$CPU_GEN" -le 14 ]]; then
+            CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+            echo -e "   ${GREEN}✅${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - ELITE SUPPORTED"
+            CPU_SUPPORTED=true
+            ((PASSED++))
+        elif [[ "$CPU_GEN" -ge 8 ]] && [[ "$CPU_GEN" -le 11 ]]; then
+            CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+            echo -e "   ${YELLOW}⚠️${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - LEGACY VERSION"
+            echo -e "   ${YELLOW}   → Not supported in Elite Edition${NC}"
+            echo -e "   ${YELLOW}   → Contact: neopackagesystem@gmail.com${NC}"
+            ((WARNINGS++))
+            ((FAILED++))
         else
-            echo -e "   ${RED}❌${NC} Non-Intel CPU detected on Mac"
+            echo -e "   ${RED}❌${NC} Unsupported Intel CPU (Model: $CPU_MODEL_NUMBER)"
+            echo -e "   ${YELLOW}   → ELITE EDITION requires 12th Gen+${NC}"
             ((FAILED++))
         fi
     fi
 
 elif [[ "$OS" == "linux" ]]; then
-    CPU_INFO=$(lscpu | grep "Model name" | cut -d':' -f2 | xargs)
-    CPU_NAME="$CPU_INFO"
-    echo -e "   ${BLUE}→${NC} CPU: $CPU_INFO"
+    CPU_NAME=$(lscpu | grep "Model name" | cut -d':' -f2 | xargs)
+    CPU_MODEL_NUMBER=$(get_cpu_model_number)
+    echo -e "   ${BLUE}→${NC} CPU: $CPU_NAME"
+    echo -e "   ${BLUE}→${NC} Model Number: $CPU_MODEL_NUMBER"
     
-    if [[ "$CPU_INFO" =~ "Intel" ]]; then
-        GEN=$(detect_intel_gen "$CPU_INFO")
+    if [[ "$CPU_NAME" =~ "Intel" ]]; then
+        CPU_VENDOR="intel"
+        CPU_GEN=$(get_intel_gen_from_model "$CPU_MODEL_NUMBER")
         
-        if [[ "$GEN" == "12" ]] || [[ "$GEN" == "13" ]] || [[ "$GEN" == "14" ]]; then
-            echo -e "   ${GREEN}✅${NC} Intel 12th Gen (Alder Lake)+ - SUPPORTED"
+        if [[ "$CPU_GEN" -ge 12 ]] && [[ "$CPU_GEN" -le 14 ]]; then
+            CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+            echo -e "   ${GREEN}✅${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - ELITE SUPPORTED"
             CPU_SUPPORTED=true
             ((PASSED++))
-        elif [[ "$GEN" == "10" ]] || [[ "$GEN" == "11" ]]; then
-            echo -e "   ${YELLOW}⚠️${NC} Intel 10th/11th Gen detected - OLDER VERSION AVAILABLE"
-            echo -e "   ${YELLOW}   → Not supported in Elite Edition${NC}"
-            echo -e "   ${YELLOW}   → Contact for legacy: neopackagesystem@gmail.com${NC}"
+        elif [[ "$CPU_GEN" -ge 8 ]] && [[ "$CPU_GEN" -le 11 ]]; then
+            CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+            echo -e "   ${YELLOW}⚠️${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - LEGACY VERSION"
+            echo -e "   ${YELLOW}   → Contact: neopackagesystem@gmail.com${NC}"
             ((WARNINGS++))
             ((FAILED++))
-        elif [[ "$GEN" == "old" ]]; then
-            echo -e "   ${RED}❌${NC} Intel 8th/9th Gen or older - NOT SUPPORTED"
-            echo -e "   ${YELLOW}   → ELITE EDITION requires Alder Lake (12th Gen)+${NC}"
-            ((FAILED++))
         else
-            echo -e "   ${RED}❌${NC} Unknown/Unsupported Intel CPU"
-            echo -e "   ${YELLOW}   → ELITE EDITION requires Alder Lake (12th Gen)+${NC}"
+            echo -e "   ${RED}❌${NC} Unsupported Intel CPU"
             ((FAILED++))
         fi
         
-    elif [[ "$CPU_INFO" =~ "AMD" ]]; then
-        if [[ "$CPU_INFO" =~ "Ryzen" ]]; then
-            # Check if Ryzen 5000+ or newer (2020+)
-            if [[ "$CPU_INFO" =~ "Ryzen 5" ]] || [[ "$CPU_INFO" =~ "Ryzen 7" ]] || [[ "$CPU_INFO" =~ "Ryzen 9" ]]; then
-                echo -e "   ${GREEN}✅${NC} AMD Ryzen (2020-2026) - SUPPORTED"
-                CPU_SUPPORTED=true
-                ((PASSED++))
-            else
-                echo -e "   ${GREEN}✅${NC} AMD CPU (2020+) - SUPPORTED"
-                CPU_SUPPORTED=true
-                ((PASSED++))
-            fi
-        else
-            echo -e "   ${RED}❌${NC} AMD chip not from 2020-2026"
-            ((FAILED++))
-        fi
+    elif [[ "$CPU_NAME" =~ "AMD" ]]; then
+        CPU_VENDOR="amd"
+        CPU_YEAR=$(get_cpu_year "" "amd")
+        echo -e "   ${GREEN}✅${NC} AMD Ryzen (${CPU_YEAR}) - SUPPORTED"
+        CPU_SUPPORTED=true
+        ((PASSED++))
     else
         echo -e "   ${RED}❌${NC} Unknown CPU"
         ((FAILED++))
@@ -286,36 +355,31 @@ elif [[ "$OS" == "windows" ]]; then
         echo -e "   ${BLUE}→${NC} CPU: $CPU_NAME"
         
         if [[ "$CPU_NAME" =~ "Intel" ]]; then
-            GEN=$(detect_intel_gen "$CPU_NAME")
+            CPU_VENDOR="intel"
+            CPU_MODEL_NUMBER=$(get_cpu_model_number)
+            CPU_GEN=$(get_intel_gen_from_model "$CPU_MODEL_NUMBER")
             
-            if [[ "$GEN" == "12" ]] || [[ "$GEN" == "13" ]] || [[ "$GEN" == "14" ]]; then
-                echo -e "   ${GREEN}✅${NC} Intel 12th Gen (Alder Lake)+ - SUPPORTED"
+            if [[ "$CPU_GEN" -ge 12 ]] && [[ "$CPU_GEN" -le 14 ]]; then
+                CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+                echo -e "   ${GREEN}✅${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - ELITE SUPPORTED"
                 CPU_SUPPORTED=true
                 ((PASSED++))
-            elif [[ "$GEN" == "10" ]] || [[ "$GEN" == "11" ]]; then
-                echo -e "   ${YELLOW}⚠️${NC} Intel 10th/11th Gen detected - OLDER VERSION AVAILABLE"
-                echo -e "   ${YELLOW}   → Contact for legacy: neopackagesystem@gmail.com${NC}"
+            elif [[ "$CPU_GEN" -ge 8 ]] && [[ "$CPU_GEN" -le 11 ]]; then
+                CPU_YEAR=$(get_cpu_year "$CPU_GEN" "intel")
+                echo -e "   ${YELLOW}⚠️${NC} Intel ${CPU_GEN}th Gen (${CPU_YEAR}) - LEGACY VERSION"
+                echo -e "   ${YELLOW}   → Contact: neopackagesystem@gmail.com${NC}"
                 ((WARNINGS++))
                 ((FAILED++))
-            elif [[ "$GEN" == "old" ]]; then
-                echo -e "   ${RED}❌${NC} Intel 8th/9th Gen or older - NOT SUPPORTED"
-                echo -e "   ${YELLOW}   → ELITE EDITION requires Alder Lake (12th Gen)+${NC}"
-                ((FAILED++))
             else
-                echo -e "   ${RED}❌${NC} Unknown/Unsupported Intel CPU"
+                echo -e "   ${RED}❌${NC} Unsupported Intel CPU"
                 ((FAILED++))
             fi
             
         elif [[ "$CPU_NAME" =~ "AMD" ]]; then
-            if [[ "$CPU_NAME" =~ "Ryzen" ]]; then
-                echo -e "   ${GREEN}✅${NC} AMD Ryzen (2020-2026) - SUPPORTED"
-                CPU_SUPPORTED=true
-                ((PASSED++))
-            else
-                echo -e "   ${GREEN}✅${NC} AMD CPU (2020+) - SUPPORTED"
-                CPU_SUPPORTED=true
-                ((PASSED++))
-            fi
+            CPU_VENDOR="amd"
+            echo -e "   ${GREEN}✅${NC} AMD CPU - SUPPORTED"
+            CPU_SUPPORTED=true
+            ((PASSED++))
         else
             echo -e "   ${RED}❌${NC} Unknown CPU"
             ((FAILED++))
@@ -323,6 +387,11 @@ elif [[ "$OS" == "windows" ]]; then
     fi
 fi
 
+# Show detailed CPU info
+echo -e "   ${BLUE}→${NC} Vendor: $CPU_VENDOR"
+if [[ "$CPU_YEAR" != "unknown" ]]; then
+    echo -e "   ${BLUE}→${NC} Year: $CPU_YEAR"
+fi
 echo ""
 
 # ============================================================
@@ -538,7 +607,7 @@ if [[ $FAILED -eq 0 ]]; then
     
     echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${NC} ${GREEN}${BOLD}🎉🎊 INSTALLATION COMPLETE! 🎊🎉${NC} ${BLUE}║${NC}"
-    echo -e "${BLUE}║${NC} ${WHITE}🔥 Your Alder Lake+ / M5 system is ready! 🔥${NC} ${BLUE}║${NC}"
+    echo -e "${BLUE}║${NC} ${WHITE}🔥 Your Alder Lake+ system is ready! 🔥${NC}    ${BLUE}║${NC}"
     echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${PURPLE}${BOLD}✨ Commands to try:${NC}"
@@ -562,7 +631,7 @@ else
     
     if [[ $WARNINGS -gt 0 ]]; then
         echo -e "${YELLOW}${BOLD}⚠️ Older CPU Detected!${NC}"
-        echo -e "${YELLOW}   You have an Intel 10th/11th Gen CPU or older.${NC}"
+        echo -e "${YELLOW}   You have an Intel 8th-11th Gen CPU or older.${NC}"
         echo ""
     fi
     
