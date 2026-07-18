@@ -5,7 +5,7 @@ PACKAGE="$2"
     
 case "$COMMAND" in
     ""|help|--help|-h)
-        echo "Neo Package Manager v0.2"
+        echo "Neo Package Manager v0.1"
         echo
         echo "Usage:"
         echo "  Neo install <package>"
@@ -17,7 +17,7 @@ case "$COMMAND" in
         echo "  Neo celebration"
         ;;
     version|--version|-v)
-        echo "Neo Package Manager v0.2"
+        echo "Neo Package Manager v0.1"
         ;;
     install)
         [ -z "$PACKAGE" ] && { echo "Usage: Neo install <package>"; exit 1; }
