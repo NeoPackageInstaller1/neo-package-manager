@@ -2,7 +2,7 @@
 
 > 🔥 INTEL ALDER LAKE+ & M5 READY - The BEST package manager!
 
-[![Version](https://img.shields.io/badge/version-3.1-red)](https://github.com/NeoPackageInstaller1/neo-package-manager)
+[![Version](https://img.shields.io/badge/version-0.1-red)](https://github.com/NeoPackageInstaller1/neo-package-manager)
 [![CPU](https://img.shields.io/badge/CPU-Alder%20Lake%2B%20%7C%20M5-orange)](https://github.com/NeoPackageInstaller1/neo-package-manager)
 [![macOS](https://img.shields.io/badge/macOS-14%2B-green)](https://github.com/NeoPackageInstaller1/neo-package-manager)
 [![Linux](https://img.shields.io/badge/Linux-Kernel%205%2B-green)](https://github.com/NeoPackageInstaller1/neo-package-manager)
